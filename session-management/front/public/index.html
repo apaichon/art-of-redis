@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <script>
+        function submitForm(event, action) {
+            event.preventDefault(); // Prevent default form submission
+            const formData = new FormData(event.target);
+            const jsonData = Object.fromEntries(formData.entries());
+
+            // Prepare headers
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            const token = localStorage.getItem('session_token'); // Get session_token from local storage
+            if (action === '/api/logout' && token) {
+                // Include token in the request if logging out
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            fetch(action, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(jsonData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').innerText = JSON.stringify(data);
+                // Save session_token in local storage after successful login
+                if (data.session_token) {
+                    localStorage.setItem('session_token', data.session_token);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <h1>User Login</h1>
+        <form onsubmit="submitForm(event, '/api/login')">
+            <input type="text" name="username" placeholder="Username" required />
+            <input type="password" name="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+        
+        <h1>User Logout</h1>
+        <form onsubmit="submitForm(event, '/api/logout')">
+            <button type="submit">Logout</button>
+        </form>
+        
+        <h1>Check Auth</h1>
+        <form onsubmit="submitForm(event, '/api/check-auth')">
+            <button type="submit">Check Auth</button>
+        </form>
+        
+        <div id="message"></div>
+    </div>
+</body>
+</html>

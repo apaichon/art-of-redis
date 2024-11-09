@@ -1,0 +1,24 @@
+### User Login Test
+POST http://127.0.0.1:9001/api/login
+Content-Type: application/json
+
+{
+    "username": "test@example.com",
+    "password": "password123"
+}
+
+### User Logout Test
+POST http://127.0.0.1:9001/api/logout
+Content-Type: application/json
+Authorization: Bearer Sdl1uTRLVYm3T_e3HNHFeD1JHsywiQTRfgXU5NKckLY=
+
+{
+    "session_token": "juE8gvCU6BwI6TvJBjW3J1-vZ5_vGQrNDMhfs35QlVI="
+}
+
+### Check Auth Test
+POST http://localhost:9001/api/check-auth
+Content-Type: application/json
+Authorization: Bearer lVi2tQLOMZoZFtIsNgScwi9BThJ5puK6OInr6fGAbjE=
+
+{}

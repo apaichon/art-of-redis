@@ -1,0 +1,151 @@
+<!-- App.svelte -->
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import { fade, slide } from 'svelte/transition';
+  
+  let ws;
+  let rooms = [];
+  let selectedRoom = null;
+  let bookingForm = {
+    checkIn: '',
+    checkOut: '',
+    userId: '123' // Mock user ID
+  };
+  let bookingStatus = '';
+  let loading = false;
+
+  $: availableRooms = rooms.filter(room => room.available);
+
+  onMount(() => {
+    connectWebSocket();
+    fetchRooms();
+  });
+
+  onDestroy(() => {
+    if (ws) ws.close();
+  });
+
+  function connectWebSocket() {
+    ws = new WebSocket('ws://localhost:8080/ws');
+    
+    ws.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      
+      if (update.type === 'room_update') {
+        updateRoom(update.data);
+      } else if (update.type === 'booking_update') {
+        handleBookingUpdate(update.data);
+      }
+    };
+
+    ws.onclose = () => {
+      setTimeout(connectWebSocket, 5000);
+    };
+  }
+
+  async function fetchRooms() {
+    try {
+      const response = await fetch('/api/rooms');
+      if (response.ok) {
+        rooms = await response.json();
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    }
+  }
+
+  function updateRoom(updatedRoom) {
+    rooms = rooms.map(room => 
+      room.id === updatedRoom.id ? updatedRoom : room
+    );
+  }
+
+  function handleBookingUpdate(booking) {
+    // Update room availability
+    updateRoom({
+      ...rooms.find(r => r.id === booking.roomId),
+      available: false
+    });
+    
+    // Show booking confirmation if it's for current user
+    if (booking.userId === bookingForm.userId) {
+      bookingStatus = 'Booking confirmed!';
+      setTimeout(() => bookingStatus = '', 5000);
+    }
+  }
+
+  async function handleBooking() {
+    if (!selectedRoom || !bookingForm.checkIn || !bookingForm.checkOut) {
+      return;
+    }
+
+    loading = true;
+    bookingStatus = '';
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          roomId: selectedRoom.id,
+          userId: bookingForm.userId,
+          checkIn: bookingForm.checkIn,
+          checkOut: bookingForm.checkOut
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      selectedRoom = null;
+      bookingForm.checkIn = '';
+      bookingForm.checkOut = '';
+      
+    } catch (error) {
+      bookingStatus = `Error: ${error.message}`;
+    } finally {
+      loading = false;
+    }
+  }
+</script>
+
+<main class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-6">Hotel Booking System</h1>
+
+  <!-- Available Rooms -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    {#each availableRooms as room (room.id)}
+      <div 
+        class="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition-shadow"
+        class:selected={selectedRoom?.id === room.id}
+        on:click={() => selectedRoom = room}
+        transition:fade
+      >
+        <h3 class="text-xl font-semibold">{room.type}</h3>
+        <p class="text-gray-600">Room {room.number}</p>
+        <p class="text-lg font-bold mt-2">${room.price}/night</p>
+        <span class="inline-block px-2 py-1 bg-green-100 text-green-800 rounded mt-2">
+          Available
+        </span>
+      </div>
+    {/each}
+  </div>
+
+  <!-- Booking Form -->
+  {#if selectedRoom}
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto" transition:slide>
+      <h2 class="text-2xl font-bold mb-4">Book Room {selectedRoom.number}</h2>
+      
+      <form on:submit|preventDefault={handleBooking} class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="checkIn">
+            Check-in Date
+          </label>
+          <input
+            type="date"
+            id="checkIn"
+            bind:value={bookingForm.checkIn}
+            min={new Date().toISOString().

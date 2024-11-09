@@ -1,0 +1,19 @@
+# Sales ticket
+POST http://localhost:9003/api/sales
+
+{
+    "id": "12345",
+    "concertId": "67890",
+    "concertName": "Awesome Concert",
+    "price": 49.99,
+    "category": "VIP",
+    "timestamp": "2024-01-01T00:00:00.000Z"
+}
+
+# Random sales ticket
+POST http://localhost:9003/api/sale-random
+
+# Remove all sales ticket
+POST http://localhost:9003/api/remove-all
+
+

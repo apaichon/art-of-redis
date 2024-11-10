@@ -1,0 +1,24 @@
+{
+  "name": "cmd",
+  "version": "1.0.0",
+  "description": "Command line",
+  "main": "runapp.js",
+  "scripts": {
+    "leaderboard": "node runapp.js start leaderboard",
+    "sales-analytics": "node runapp.js start sales-analytics",
+    "lucky-draw": "node runapp.js start lucky-draw",
+    "session-management": "node runapp.js start session-management"
+  },
+  "keywords": [
+    "Run",
+    "command",
+    "line",
+    "for",
+    "start",
+    "and",
+    "stop",
+    "app"
+  ],
+  "author": "Apaichon Punopas",
+  "license": "MIT"
+}

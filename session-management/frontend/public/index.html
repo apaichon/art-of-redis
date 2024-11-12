@@ -16,9 +16,10 @@
             };
 
             const token = localStorage.getItem('session_token'); // Get session_token from local storage
-            if (action === '/api/logout' && token) {
+            if (action === '/api/logout' || action === '/api/check-auth' && token) {
                 // Include token in the request if logging out
                 headers['Authorization'] = `Bearer ${token}`;
+                jsonData.session_token = token;
             }
 
             fetch(action, {

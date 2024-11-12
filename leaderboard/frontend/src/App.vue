@@ -48,6 +48,7 @@ const handleScoreSubmit = async (scoreData) => {
   try {
     loading.value = true
     await updateScore(scoreData)
+    // console.log('rankings: ', rankings)
   } catch (error) {
     console.error('Failed to update score:', error)
     // Use a proper toast/notification system instead of alert

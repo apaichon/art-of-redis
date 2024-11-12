@@ -1,26 +1,30 @@
 package service
 
 import (
-    "context"
-    
-    "leaderboard/internal/domain/models"
-    "leaderboard/internal/ports"
+	"context"
+
+	"leaderboard/internal/domain/models"
+	"leaderboard/internal/ports"
 )
 
 type LeaderboardService struct {
-    repo ports.LeaderboardRepository
+	repo ports.LeaderboardRepository
 }
 
 func NewLeaderboardService(repo ports.LeaderboardRepository) *LeaderboardService {
-    return &LeaderboardService{
-        repo: repo,
-    }
+	return &LeaderboardService{
+		repo: repo,
+	}
 }
 
 func (s *LeaderboardService) UpdatePlayerScore(ctx context.Context, player *models.Player) error {
-    return s.repo.UpdateScore(ctx, player)
+	return s.repo.UpdateScore(ctx, player)
 }
 
 func (s *LeaderboardService) GetRankings(ctx context.Context) ([]*models.Player, error) {
-    return s.repo.GetLeaderboard(ctx)
+	return s.repo.GetLeaderboard(ctx)
+}
+
+func (s *LeaderboardService) RemoveLeaderboard(ctx context.Context) error {
+	return s.repo.RemoveLeaderboard(ctx, "leaderboard")
 }

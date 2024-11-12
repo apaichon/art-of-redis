@@ -45,31 +45,29 @@ func (h *Handler) StartDraw(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	h.hub.Broadcast <- &models.Message{
 		Type: "draw_update",
 		Data: draw,
 	}
-	
+
 	go h.processDraw(draw)
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(draw)
 }
 
 func (h *Handler) processDraw(draw *models.Draw) {
 	time.Sleep(5 * time.Second)
-	
-	
 
 	draw.Status = "completed"
 	draw.WinningNumber = utils.GenerateNumber()
 	draw.CompletedAt = time.Now()
 
-	fmt.Printf("draw: %+v\n", draw)
-	
+	fmt.Printf("completed draw: %+v\n", draw)
+
 	h.store.StoreDraw(draw)
-	
+
 	h.hub.Broadcast <- &models.Message{
 		Type: "draw_update",
 		Data: draw,
@@ -86,20 +84,22 @@ func (h *Handler) ClaimPrize(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Validate the claim
 	draw, err := h.store.GetDraw(claimRequest.DrawID)
 	if err != nil || draw.Status != "completed" {
 		http.Error(w, "Draw not found or not completed", http.StatusNotFound)
 		return
 	}
-	
+
 	// Update the store with the claimed prize
+	fmt.Printf("claimed draw: %+v\n", draw)
+
 	if err := h.store.ClaimPrize(claimRequest.DrawID, claimRequest.UserID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	// Send a success response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Prize claimed successfully"})
@@ -125,5 +125,11 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		// Handle the message (you can add your own logic here)
 		h.hub.Broadcast <- &msg
+	}
+}
+
+func CORSHeaders() map[string]string {
+	return map[string]string{
+		"Access-Control-Allow-Origin": "*",
 	}
 }

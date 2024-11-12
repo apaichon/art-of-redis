@@ -175,6 +175,7 @@ const LuckyDraw = () => {
       }
       
       const drawData = await response.json();
+      console.log('drawData', drawData);
       setDraw(drawData);
     } catch (err) {
       setError('Failed to fetch');

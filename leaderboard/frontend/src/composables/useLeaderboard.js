@@ -10,9 +10,15 @@ export function useLeaderboard() {
     if (!update) return
 
     if (update.type === 'full_update') {
-      rankings.value = update.rankings
+      rankings.value = update.rankings.map(player => ({
+        ...player,
+        timestamp: update.timestamp
+      }))
     } else if (update.type === 'update') {
-      rankings.value = update.rankings
+      rankings.value = update.rankings.map(player => ({
+        ...player,
+        timestamp: update.timestamp
+      }))
       
       if (update.player) {
         recentlyUpdated.value[update.player.id] = true

@@ -21,7 +21,7 @@
           <td class="rank">#{{ player.rank }}</td>
           <td>{{ player.name }}</td>
           <td class="score">{{ formatScore(player.score) }}</td>
-          <td class="timestamp">{{ formatTimestamp(player.timestamp) }}</td>
+          <td class="timestamp">{{ formatTimestamp(player.timestamp) }}</td>  
         </tr>
         <tr v-if="!loading && rankings.length === 0">
           <td colspan="4" class="empty-state">

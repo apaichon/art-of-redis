@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -102,6 +103,8 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("Logout request:", logoutReq.SessionToken)
+
 	// Delete session from Redis
 	err := s.redis.Del(r.Context(), "session:"+logoutReq.SessionToken).Err()
 	if err != nil {
@@ -116,33 +119,37 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCheckAuth(w http.ResponseWriter, r *http.Request) {
-	session, err := s.getSession(r)
+	// Get session token from the Authorization header
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the token from the header (assuming Bearer token format)
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Retrieve the session using the token
+	sessionData, err := s.redis.Get(r.Context(), "session:"+token).Result()
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(session)
-}
-
-func (s *Server) getSession(r *http.Request) (*Session, error) {
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		return nil, err
-	}
-
-	sessionData, err := s.redis.Get(r.Context(), "session:"+cookie.Value).Result()
-	if err != nil {
-		return nil, err
-	}
-
 	var session Session
 	if err := json.Unmarshal([]byte(sessionData), &session); err != nil {
-		return nil, err
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
 
-	return &session, nil
+	fmt.Println("Session:", session)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(session)
 }
 
 func (s *Server) generateSessionToken() (string, error) {

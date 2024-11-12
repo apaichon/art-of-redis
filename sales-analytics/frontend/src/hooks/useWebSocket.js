@@ -21,6 +21,7 @@ export const useWebSocket = () => {
       ws.current.onmessage = (event) => {
         try {
           const parsedData = JSON.parse(event.data);
+          // console.log('WebSocket Message:', parsedData);
           setData(parsedData);
         } catch (e) {
           console.error('Failed to parse WebSocket message:', e);

@@ -34,5 +34,17 @@ func setupRoutes(h *handlers.Handler) *mux.Router {
 	router.HandleFunc("/api/draw/start", h.StartDraw).Methods("POST")
 	router.HandleFunc("/api/draw/claim", h.ClaimPrize).Methods("POST")
 	router.HandleFunc("/ws", h.HandleWebSocket)
+	
+	// Implement CORS origin
+	headers := handlers.CORSHeaders()
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			for key, value := range headers {
+				w.Header().Set(key, value)
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+	
 	return router
 }

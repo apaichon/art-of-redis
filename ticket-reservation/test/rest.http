@@ -1,0 +1,48 @@
+### tickets/create
+POST http://127.0.0.1:9005/tickets/create
+Content-Type: application/json
+
+{
+       "id": "ticket123",
+       "status": "available"
+      
+}
+
+### tickets/reserve
+POST http://127.0.0.1:9005/tickets/reserve
+Content-Type: application/json
+
+{
+       "id": "ticket123",
+       "status": "available",
+       "user_id": "user456"
+}
+
+### tickets/reserve2
+POST http://127.0.0.1:9005/tickets/reserve
+Content-Type: application/json
+
+{
+       "id": "ticket123",
+       "user_id": "user456"
+}
+
+### tickets/waiting-list
+
+POST http://localhost:9005/tickets/waiting-list
+
+{
+       "id": "ticket123",
+       "status": "reserved",
+       "user_id": "user123"
+}
+
+### tickets/pay
+
+POST http://localhost:9005/tickets/pay
+
+{
+       "id": "ticket123",
+       "status": "reserved",
+       "user_id": "user456"
+}

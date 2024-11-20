@@ -13,3 +13,16 @@ Art of Redis apply to real use case with high performance.
 
 ## Lucky Draw
 - [Lucky Draw](./docs/4-lucky-draw.md)
+
+
+BITMAP
+HYPERLOGLOGS
+PFADD
+PFCOUNT
+PFMERGE
+
+มีแค่ใน Enterprise
+SENTINEL
+Multi Master
+GOSSIP
+Sharding 16,384

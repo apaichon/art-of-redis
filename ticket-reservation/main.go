@@ -50,9 +50,6 @@ func reserveTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Start Redis Transaction
-	// txn := rdb.TxPipeline()
-
 	// Check if ticket exists and is available
 	exists, err := rdb.Get(ctx, "ticket:"+ticket.ID).Result()
 	if err != nil || exists == "" {
@@ -65,8 +62,26 @@ func reserveTicketHandler(w http.ResponseWriter, r *http.Request) {
 	var currentTicket Ticket
 	json.Unmarshal([]byte(exists), &currentTicket)
 
-	if currentTicket.Status == "reserved" || currentTicket.Status == "paid" {
-		http.Error(w, "Ticket already reserved or paid", http.StatusBadRequest)
+
+	if currentTicket.Status == "paid" {
+		http.Error(w, "Ticket already paid", http.StatusBadRequest)
+		return
+	} else if currentTicket.Status == "reserved" {
+		// Add to waiting list
+		waitingItem := WaitingList{
+			TicketID: ticket.ID,
+			UserID:   ticket.UserID,
+			AddedAt:  time.Now(),
+		}
+		itemJSON, _ := json.Marshal(waitingItem)
+		rdb.RPush(ctx, "waitinglist:"+waitingItem.TicketID, string(itemJSON)).Err()
+		
+		// New response message
+		w.WriteHeader(http.StatusAccepted) // Indicate that the user has been added to the waiting list
+		response := map[string]string{
+			"message": "You have been added to the waiting list for ticket " + ticket.ID,
+		}
+		json.NewEncoder(w).Encode(response) // Send the response message
 		return
 	}
 
@@ -198,3 +213,22 @@ func main() {
 	log.Fatal(http.ListenAndServe(":9005", router))
 
 }
+
+/*
+API:
+1. Reserve Ticket
+2. Add to Waiting List
+3. Pay Ticket
+4. Create Ticket
+
+Payment Worker:
+1. Listen to payment_events
+2. Update ticket status to paid
+3. Remove from waiting list
+
+Notifications:
+1. Payment Worker: When a payment is successful, it publishes a notification to the "ticket_paid" channel
+2. Core API: Listens to the "ticket_paid" channel and updates the ticket status to "paid"
+3. Core API: Listens to the "ticket_reserved" channel and updates the ticket status to "reserved"
+
+*/

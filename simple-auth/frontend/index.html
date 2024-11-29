@@ -1,0 +1,62 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth System</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div x-data="{ isLoggedIn: false }">
+        <!-- Login Form -->
+        <div x-show="!isLoggedIn" @authSuccess.window="isLoggedIn = true">
+            <form hx-post="/login" hx-target="#authStatus" hx-swap="innerHTML">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+
+
+        <!-- Auth Status Display -->
+        <div id="authStatus" hx-get="/check-auth" hx-trigger="load"
+            @load.window="isLoggedIn = $el.innerText.includes('Logged in'); console.log('Auth Status:', isLoggedIn)">
+        </div>
+
+    
+    </div>
+
+        <!-- Logout Button -->
+        <div x-show="isLoggedIn"
+            @authLogout.window="isLoggedIn = false;">
+            <form hx-post="/logout" hx-target="#authStatus" hx-swap="innerHTML" @submit.prevent="logout">
+                <button type="submit">Logout</button>
+        </form>
+    </div>
+
+
+
+    <!-- Add this script to handle logout -->
+    <script>
+        function logout() {
+            // Optionally, you can add any additional logic here before logout
+            // For example, show a confirmation dialog
+            if (confirm('Are you sure you want to logout?')) {
+                // Proceed with the logout
+                this.$dispatch('authLogout');
+            }
+        }
+    </script>
+</body>
+
+</html>

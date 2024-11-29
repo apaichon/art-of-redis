@@ -1,0 +1,19 @@
+### Login
+
+POST http://localhost:9000/login
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "test"
+}
+
+### Logout
+
+POST http://localhost:9000/logout
+Content-Type: application/json
+Cookie: session_id=ac12e271-b2aa-49fb-b306-790e1abb7523
+
+### Check Auth
+
+GET http://localhost:9000/check-auth

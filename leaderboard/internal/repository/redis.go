@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"leaderboard/internal/config"
 	"leaderboard/internal/domain/models"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	// redis "github.com/Desquaredp/go-valkey"
@@ -38,13 +38,14 @@ func (r *RedisRepository) UpdateScore(ctx context.Context, player *models.Player
 	pipe := r.client.Pipeline()
 
 	// Update score in sorted set
-    // redis use &redis.Z
+	// redis use &redis.Z
 	pipe.ZAdd(ctx, r.config.LeaderboardKey, &redis.Z{
 		Score:  player.Score,
 		Member: player.ID,
 	})
 
 	// Store player details
+	player.UpdatedAt = time.Now()
 	playerData, err := json.Marshal(player)
 	if err != nil {
 		return fmt.Errorf("failed to marshal player: %w", err)

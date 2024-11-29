@@ -21,7 +21,7 @@
           <td class="rank">#{{ player.rank }}</td>
           <td>{{ player.name }}</td>
           <td class="score">{{ formatScore(player.score) }}</td>
-          <td class="timestamp">{{ formatTimestamp(player.timestamp) }}</td>  
+          <td class="timestamp">{{ formatDateTime(player.updated_at) }}</td>  
         </tr>
         <tr v-if="!loading && rankings.length === 0">
           <td colspan="4" class="empty-state">
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { formatScore, formatTimestamp } from '@/utils/formatters'
+import { formatScore, formatDateTime } from '@/utils/formatters'
 
 defineProps({
   rankings: {

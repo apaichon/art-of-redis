@@ -26,6 +26,14 @@ Content-Type: application/json
        "id": "ticket123",
        "user_id": "user456"
 }
+### tickets/reserve2
+POST http://127.0.0.1:9005/tickets/reserve
+Content-Type: application/json
+
+{
+       "id": "ticket123",
+       "user_id": "user789"
+}
 
 ### tickets/waiting-list
 

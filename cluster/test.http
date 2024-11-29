@@ -1,0 +1,11 @@
+### @name getTickets
+GET http://localhost:3000/api/tickets
+
+### @name createTicket
+POST http://127.0.0.1:3000/api/tickets
+Content-Type: application/json
+
+{
+  "id": "1",
+  "title": "Test Ticket"
+}

@@ -1,0 +1,147 @@
+<!-- views/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8" x-data="quizApp()">
+        <div class="max-w-2xl mx-auto">
+            <template x-if="!quizStarted">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h1 class="text-2xl font-bold mb-4">Welcome to the Quiz App</h1>
+                    <button 
+                        @click="startQuiz"
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Start Quiz
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="quizStarted && !quizCompleted">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4" x-text="currentQuestion.text"></h2>
+                    <div class="space-y-2">
+                        <template x-for="(option, index) in currentQuestion.options" :key="index">
+                            <div>
+                                <label class="flex items-center space-x-2 p-2 rounded hover:bg-gray-100">
+                                    <input 
+                                        type="radio" 
+                                        :name="'question-' + currentQuestionIndex"
+                                        :value="index"
+                                        x-model="answers[currentQuestionIndex]"
+                                    >
+                                    <span x-text="option"></span>
+                                </label>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="mt-6 flex justify-between">
+                        <button 
+                            @click="previousQuestion" 
+                            x-show="currentQuestionIndex > 0"
+                            class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        >
+                            Previous
+                        </button>
+                        <button 
+                            @click="nextQuestion"
+                            x-text="currentQuestionIndex === quiz.questions.length - 1 ? 'Submit' : 'Next'"
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="quizCompleted">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold mb-4">Quiz Complete!</h2>
+                    <p class="text-lg">
+                        Your score: <span x-text="score"></span>/<span x-text="quiz.questions.length"></span>
+                    </p>
+                    <button 
+                        @click="resetQuiz"
+                        class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        function quizApp() {
+            return {
+                quiz: null,
+                quizStarted: false,
+                quizCompleted: false,
+                currentQuestionIndex: 0,
+                answers: [],
+                score: 0,
+
+                async startQuiz() {
+                    try {
+                        const response = await fetch('/api/quiz/1');
+                        this.quiz = await response.json();
+                        this.answers = new Array(this.quiz.questions.length).fill(null);
+                        this.quizStarted = true;
+                    } catch (error) {
+                        console.error('Failed to load quiz:', error);
+                    }
+                },
+
+                get currentQuestion() {
+                    return this.quiz?.questions[this.currentQuestionIndex];
+                },
+
+                previousQuestion() {
+                    if (this.currentQuestionIndex > 0) {
+                        this.currentQuestionIndex--;
+                    }
+                },
+
+                async nextQuestion() {
+                    if (this.currentQuestionIndex === this.quiz.questions.length - 1) {
+                        await this.submitQuiz();
+                    } else {
+                        this.currentQuestionIndex++;
+                    }
+                },
+
+                async submitQuiz() {
+                    try {
+                        console.log('answers', this.answers.map(Number));
+                        const response = await fetch(`/api/submit/${this.quiz.id}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ answers: this.answers.map(Number) }),
+                        });
+                        const result = await response.json();
+                        this.score = result.score;
+                        this.quizCompleted = true;
+                    } catch (error) {
+                        console.error('Failed to submit quiz:', error);
+                    }
+                },
+
+                resetQuiz() {
+                    this.quizStarted = false;
+                    this.quizCompleted = false;
+                    this.currentQuestionIndex = 0;
+                    this.answers = [];
+                    this.score = 0;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

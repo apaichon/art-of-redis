@@ -9,15 +9,16 @@ export function useLeaderboard() {
   watch(lastMessage, (update) => {
     if (!update) return
 
+    console.log('update', update)
     if (update.type === 'full_update') {
       rankings.value = update.rankings.map(player => ({
         ...player,
-        timestamp: update.timestamp
+        // timestamp: update.timestamp
       }))
     } else if (update.type === 'update') {
       rankings.value = update.rankings.map(player => ({
         ...player,
-        timestamp: update.timestamp
+        // timestamp: update.timestamp
       }))
       
       if (update.player) {

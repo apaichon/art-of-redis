@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  redis1:
+    image: redis:7.0
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    volumes:
+      - ./redis1.conf:/usr/local/etc/redis/redis.conf
+      - redis1-data:/data
+    networks:
+      - redis-cluster
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7001", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis2:
+    image: redis:7.0
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    volumes:
+      - ./redis2.conf:/usr/local/etc/redis/redis.conf
+      - redis2-data:/data
+    networks:
+      - redis-cluster
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7002", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis3:
+    image: redis:7.0
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    volumes:
+      - ./redis3.conf:/usr/local/etc/redis/redis.conf
+      - redis3-data:/data
+    networks:
+      - redis-cluster
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7003", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-cluster-init:
+    image: redis:7.0
+    depends_on:
+      redis1:
+        condition: service_healthy
+      redis2:
+        condition: service_healthy
+      redis3:
+        condition: service_healthy
+    command: redis-cli --cluster create redis1:7001 redis2:7002 redis3:7003 --cluster-replicas 0 --cluster-yes
+    networks:
+      - redis-cluster
+
+  nodeapp:
+    build:
+      context: .
+      dockerfile: Node.Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+    environment:
+      - REDIS_HOSTS=redis1:7001,redis2:7002,redis3:7003
+
+networks:
+  redis-cluster:
+    driver: bridge
+
+volumes:
+  redis1-data:
+  redis2-data:
+  redis3-data:

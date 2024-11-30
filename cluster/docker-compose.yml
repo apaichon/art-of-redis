@@ -65,19 +65,6 @@ services:
     networks:
       - redis-cluster
 
-  nodeapp:
-    build:
-      context: .
-      dockerfile: Node.Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - redis1
-      - redis2
-      - redis3
-    environment:
-      - REDIS_HOSTS=redis1:7001,redis2:7002,redis3:7003
-
 networks:
   redis-cluster:
     driver: bridge
